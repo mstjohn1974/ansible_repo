@@ -1,0 +1,24 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: update repository cache
+    apt:
+      update_cache: yes
+
+  - name: install nginx package
+    apt:
+      name: nginx
+      state: latest
+
+  - name: add php support for nginx 
+    apt:
+      name: php-fpm
+      state: latest
+
+  - name: add mysql support to php
+    apt:
+      name: php-mysql
+      state: latest
