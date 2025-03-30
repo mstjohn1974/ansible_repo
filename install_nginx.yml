@@ -7,18 +7,45 @@
   - name: update repository cache
     apt:
       update_cache: yes
+    when: ansible_distribution in ["Debian","Ubuntu"]
 
   - name: install nginx package
     apt:
       name: nginx
       state: latest
+    when: ansible_distribution in ["Debian","Ubuntu"]
 
   - name: add php support for nginx 
     apt:
       name: php-fpm
       state: latest
+    when: ansible_distribution in ["Debian","Ubuntu"]
 
   - name: add mysql support to php
     apt:
       name: php-mysql
       state: latest
+    when: ansible_distribution in ["Debian","Ubuntu"]
+
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: update repository cache
+    dnf:
+      update_cache: yes
+    when: ansible_distribution in ["RedHat"]
+
+  - name: install nginx package
+    dnf:
+      name: nginx
+      state: latest
+    when: ansible_distribution in ["RedHat"]
+
+  - name: add php support for nginx 
+    dnf:
+      name: php
+      state: latest
+    when: ansible_distribution in ["RedHat"]
+
