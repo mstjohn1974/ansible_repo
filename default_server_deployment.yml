@@ -18,6 +18,23 @@
       update_cache: yes                                  # task for updating the repository
     when: ansible_distribution == ["RedHat", "Centos"]   # condition looking for distro
 
+- hosts: workstations
+  become: true
+  tasks:
+
+  - name: install unzip
+    package:
+      name: unzip
+
+  - name: install terraform
+    unarchive:
+      src: https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      owner: root
+      group: root
+
 - hosts: web_servers                                     # this time its only focusing on the web server group
   become: true                                           # allow permission elevation
   tasks:                                                 # marking the beginning of the tasks section
