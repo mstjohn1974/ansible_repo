@@ -32,6 +32,15 @@
       state: latest                                      # referres to version 
     when: ansible_distribution in ["Debian","Ubuntu"]    # condition looking for distro
 
+  - name: upload default html file
+    tags: nginx,webserver
+    copy:
+      src: default_site.html
+      dest: /var/www/html/index.html
+      owner: nobody
+      group: nogroup
+      mode: 0644
+
   - name: install nginx pnd php packages                 # task name, can be anything
     tags: redhat,nginx
     dnf:                                                 # focusing on dnf package manager
