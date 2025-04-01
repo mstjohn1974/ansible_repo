@@ -1,0 +1,70 @@
+---
+
+- hosts: all                                             # "all" targets all devices in the inventory
+  become: true
+  pre_tasks:                                             # pre-tasks demands to be run before tasks
+
+  - name: install updates (Debian/Ubuntu)                # Name of the task, can be anything you like
+    tags: always
+    apt:                                                 # focusing on apt package manager 
+      upgrade: dist                                      # task for upgrading all packages
+      update_cache: yes                                  # task for updating the repository
+    when: ansible_distribution == ["Debian", "Ubuntu"]   # condition looking for distro
+
+  - name: install updates (RedHat/Centos)                # Name of the task, can be anything you like
+    tags: always
+    dnf:                                                 # focusing on dnf package manager 
+      update_only: yes                                   # task for updating all packages
+      update_cache: yes                                  # task for updating the repository
+    when: ansible_distribution == ["RedHat", "Centos"]   # condition looking for distro
+
+- hosts: web_servers                                     # this time its only focusing on the web server group
+  become: true                                           # allow permission elevation
+  tasks:                                                 # marking the beginning of the tasks section
+
+  - name: install nginx and php packages                 # task name, can be anything
+    tags: nginx,debian
+    apt:                                                 # focusing on apt package manager
+      name:                                              # name section for all packages that should be inst.
+        - nginx                                          # package name
+        - php-fpm                                        # package name
+        - php-mysql                                      # package name
+      state: latest                                      # referres to version 
+    when: ansible_distribution in ["Debian","Ubuntu"]    # condition looking for distro
+
+  - name: install nginx pnd php packages                 # task name, can be anything
+    tags: redhat,nginx
+    dnf:                                                 # focusing on dnf package manager
+      name:                                              # name section for all packages that should be inst
+        - nginx                                          # package name
+        - php                                            # package name
+      state: latest                                      # referres to version 
+    when: ansible_distribution in ["RedHat"]             # condition looking for distro
+
+- hosts: database_servers
+  become: true
+  tasks:
+
+  - name: install MariaDB Server (Debian/Ubuntu)
+    tags: db,mariadb,debian
+    apt:
+      name: mariadb-server
+      state: latest
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: install MariaDB Server (Red Hat/Centos)
+    tags: db,mariadb,redhat
+    dnf:
+      name: mariadb
+      state: latest
+    when: ansible_distribution in ["RedHat", "Centos"]
+
+- hosts: file_servers
+  become: true
+  tasks:
+
+    - name: installing samba package
+      tags: samba,fileserver
+      package:
+        name: samba
+        state: latest

@@ -1,0 +1,9 @@
+[web_servers]
+venus
+
+[database_servers]
+mercury
+
+[file_servers]
+venus
+mercury
