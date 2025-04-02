@@ -1,0 +1,139 @@
+---
+
+- hosts: all                                             # "all" targets all devices in the inventory
+  become: true
+  pre_tasks:                                             # pre-tasks demands to be run before tasks
+
+  - name: updating repositories (Debian/Ubuntu)...       # Name of the task, can be anything you like
+    tags: always
+    apt:                                                 # focusing on apt package manager 
+      #      upgrade: dist                               # task for upgrading all packages
+      update_cache: yes                                  # task for updating the repository
+    changed_when: false                                  # this means it will not consider it a change 
+                                                         # when the cache has been updated
+    when: ansible_distribution in ["Debian", "Ubuntu"]   # condition looking for distro
+
+  - name: updating repositories (RedHat/Centos)...       # Name of the task, can be anything you like
+    tags: always
+    dnf:                                                 # focusing on dnf package manager 
+      #      update_only: yes                            # task for updating all packages
+      update_cache: yes                                  # task for updating the repository
+    changed_when: false                                  # this means it will not consider it a change 
+                                                         # when the cache has been updated
+    when: ansible_distribution in ["RedHat", "Centos"]   # condition looking for distro
+
+      
+- hosts: all
+  become: true
+  tasks:
+
+    - name: adding ssh key for automater...
+      tags: always
+      authorized_key:
+        user: automater 
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP6esH4gAPqKeHT5+rm/uR+tBcOwqt+yWH+Vu/TaWRi6 ansible automater"
+
+
+- hosts: workstations                                    # Targets the workstation group in the inventory
+  become: true
+  tasks:
+
+  - name: installing unzip...
+    package:
+      name: unzip
+
+  - name: installing terraform...
+    unarchive:                                           # used to unarchive files
+      src: https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip # remote source
+      dest: /usr/local/bin                               # destination folder to unarchive to
+      remote_src: yes                                    # Telling Ansible that the src is remote
+      mode: 0755                                         # setting file permissions
+      owner: root                                        # setting ownership
+      group: root                                        # setting group membership
+
+
+- hosts: web_servers                                     # this time its only focusing on the web server group
+  become: true                                           # allow permission elevation
+  tasks:                                                 # marking the beginning of the tasks section
+
+  - name: install nginx and php packages...              # task name, can be anything
+    tags: nginx,debian
+    apt:                                                 # focusing on apt package manager
+      name:                                              # name section for all packages that should be inst.
+        - nginx                                          # package name
+        - php-fpm                                        # package name
+        - php-mysql                                      # package name
+      state: latest                                      # referres to version 
+    when: ansible_distribution in ["Debian","Ubuntu"]    # condition looking for distro
+
+  - name: changing log file...                 
+    tags: nginx,debian
+    lineinfile:                                          # working with a line in a file module
+      path: /etc/nginx/nginx.conf                        # path to the file that needs change
+      regexp: '^error_log'                               # Regular expressaion to locate line in file
+      line: error_log /var/log/nginx/error-default.log;  # How the line should look like or replace with
+    when: ansible_distribution == "Debian"
+    register: nginxchg                                   # assigning a variable for the change
+
+  - name: restarting nginx...                        
+    tags: nginx,debian
+    service:                                             # using the Service module
+      name: nginx                                        # looking for nginx service
+      state: restarted                                   # restart the service
+    when: nginxchg.changed                                  # when the nginx variable has changed
+
+  - name: uploading default html file...
+    tags: nginx,webserver                                # tagging to focus installation
+    copy:                                                # copying files to server/workstation
+      src: default_site.html
+      dest: /var/www/html/index.html
+      owner: nobody
+      group: nogroup
+      mode: 0644
+
+  - name: starting & enabling nginx Web-Server...
+    tags: nginx,debian
+    service:
+      name: nginx
+      state: started
+      enabled: yes
+    when: ansible_distribution == "Debian"
+
+  - name: install nginx pnd php packages...              # task name, can be anything
+    tags: redhat,nginx
+    dnf:                                                 # focusing on dnf package manager
+      name:                                              # name section for all packages that should be inst
+        - nginx                                          # package name
+        - php                                            # package name
+      state: latest                                      # referres to version 
+    when: ansible_distribution == ["RedHat"]             # condition looking for distro
+
+
+- hosts: database_servers
+  become: true
+  tasks:
+
+  - name: installing MariaDB Server (Debian/Ubuntu)...
+    tags: db,mariadb,debian
+    apt:
+      name: mariadb-server
+      state: latest
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: installing MariaDB Server (Red Hat/Centos)...
+    tags: db,mariadb,redhat
+    dnf:
+      name: mariadb
+      state: latest
+    when: ansible_distribution in ["RedHat", "Centos"]
+
+
+- hosts: file_servers
+  become: true
+  tasks:
+
+    - name: installing samba package...
+      tags: samba,fileserver
+      package:
+        name: samba
+        state: latest

@@ -1,0 +1,12 @@
+- name: installing unzip...
+  package:
+    name: unzip
+
+- name: installing terraform...
+  unarchive:                                           # used to unarchive files
+    src: https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip # remote source
+    dest: /usr/local/bin                               # destination folder to unarchive to
+    remote_src: yes                                    # Telling Ansible that the src is remote
+    mode: 0755                                         # setting file permissions
+    owner: root                                        # setting ownership
+    group: root                                        # setting group membership

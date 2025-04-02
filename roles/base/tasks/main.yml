@@ -1,0 +1,4 @@
+- name: adding ssh key for automater...
+  authorized_key:
+    user: automater 
+    key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP6esH4gAPqKeHT5+rm/uR+tBcOwqt+yWH+Vu/TaWRi6 ansible automater"

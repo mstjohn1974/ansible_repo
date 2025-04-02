@@ -1,0 +1,24 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: update repository cache
+    apt:
+      update_cache: yes
+
+  - name: remove nginx package
+    apt:
+      name: nginx
+      state: absent
+
+  - name: remove php support for nginx 
+    apt:
+      name: php-fpm
+      state: absent
+
+  - name: remove mysql support to php
+    apt:
+      name: php-mysql
+      state: absent

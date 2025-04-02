@@ -1,0 +1,45 @@
+---
+
+- hosts: all                                             # "all" targets all devices in the inventory
+  become: true
+  pre_tasks:                                             # pre-tasks demands to be run before tasks
+
+  - name: installing updates (Debian/Ubuntu)...          # Name of the task, can be anything you like
+    tags: always
+    apt:                                                 # focusing on apt package manager 
+      upgrade: dist                                      # task for upgrading all packages
+      update_cache: yes                                  # task for updating the repository
+    when: ansible_distribution in ["Debian", "Ubuntu"]   # condition looking for distro
+
+  - name: installing updates (RedHat/Centos)...          # Name of the task, can be anything you like
+    tags: always
+    dnf:                                                 # focusing on dnf package manager 
+      update_only: yes                                   # task for updating all packages
+      update_cache: yes                                  # task for updating the repository
+    when: ansible_distribution in ["RedHat", "Centos"]   # condition looking for distro
+
+      
+- hosts: all
+  become: true
+  tasks:
+
+    - name: creating user automater...
+      tags: always
+      user:
+        name: automater 
+        group: users 
+
+    - name: adding ssh key for automater...
+      tags: always
+      authorized_key:
+        user: automater 
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP6esH4gAPqKeHT5+rm/uR+tBcOwqt+yWH+Vu/TaWRi6 ansible automater"
+
+    - name: adding sudoers file for automater user...
+      tags: always
+      copy:
+        src: sudoers_automater
+        dest: /etc/sudoers.d/automater
+        owner: root
+        group: root
+        mode: 0440
