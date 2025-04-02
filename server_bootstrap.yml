@@ -23,23 +23,23 @@
   become: true
   tasks:
 
-    - name: create user automater
+    - name: create user testuser
       tags: always
       user:
-        name: automater 
-        group: users 
+        name: testuser
+        group: nogroup
 
-    - name: add ssh key for automater
+    - name: add ssh key for testuser
       tags: always
       authorized_key:
-        user: automater 
-        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP6esH4gAPqKeHT5+rm/uR+tBcOwqt+yWH+Vu/TaWRi6 ansible automater"
+        user: testuser
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3L/KD8rd6hljNoq3zhTf5BBJaO9qyOv7j1NilA2CF7 testuser"
 
-    - name: add sudoers file for automater user
+    - name: add sudoers file for testuser
       tags: always
       copy:
-        src: sudoers_automater
-        dest: /etc/sudoers.d/automater
+        src: sudoers_testuser
+        dest: /etc/sudoers.d/testuser
         owner: root
         group: root
         mode: 0440
