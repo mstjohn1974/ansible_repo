@@ -4,18 +4,22 @@
   become: true
   pre_tasks:                                             # pre-tasks demands to be run before tasks
 
-  - name: install updates (Debian/Ubuntu)                # Name of the task, can be anything you like
+  - name: updating repositories (Debian/Ubuntu)...       # Name of the task, can be anything you like
     tags: always
     apt:                                                 # focusing on apt package manager 
-      upgrade: dist                                      # task for upgrading all packages
+      #      upgrade: dist                               # task for upgrading all packages
       update_cache: yes                                  # task for updating the repository
+    changed_when: false                                  # this means it will not consider it a change 
+                                                         # when the cache has been updated
     when: ansible_distribution in ["Debian", "Ubuntu"]   # condition looking for distro
 
-  - name: install updates (RedHat/Centos)                # Name of the task, can be anything you like
+  - name: updating repositories (RedHat/Centos)...       # Name of the task, can be anything you like
     tags: always
     dnf:                                                 # focusing on dnf package manager 
-      update_only: yes                                   # task for updating all packages
+      #      update_only: yes                            # task for updating all packages
       update_cache: yes                                  # task for updating the repository
+    changed_when: false                                  # this means it will not consider it a change 
+                                                         # when the cache has been updated
     when: ansible_distribution in ["RedHat", "Centos"]   # condition looking for distro
 
       
@@ -23,37 +27,22 @@
   become: true
   tasks:
 
-    - name: create user automater
-      tags: always
-      user:
-        name: automater 
-        group: users 
-
-    - name: add ssh key for automater
+    - name: adding ssh key for automater...
       tags: always
       authorized_key:
         user: automater 
         key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP6esH4gAPqKeHT5+rm/uR+tBcOwqt+yWH+Vu/TaWRi6 ansible automater"
-
-    - name: add sudoers file for automater user
-      tags: always
-      copy:
-        src: sudoers_automater
-        dest: /etc/sudoers.d/automater
-        owner: root
-        group: root
-        mode: 0440
 
 
 - hosts: workstations                                    # Targets the workstation group in the inventory
   become: true
   tasks:
 
-  - name: install unzip
+  - name: installing unzip...
     package:
       name: unzip
 
-  - name: install terraform
+  - name: installing terraform...
     unarchive:                                           # used to unarchive files
       src: https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip # remote source
       dest: /usr/local/bin                               # destination folder to unarchive to
@@ -67,7 +56,7 @@
   become: true                                           # allow permission elevation
   tasks:                                                 # marking the beginning of the tasks section
 
-  - name: install nginx and php packages                 # task name, can be anything
+  - name: install nginx and php packages...              # task name, can be anything
     tags: nginx,debian
     apt:                                                 # focusing on apt package manager
       name:                                              # name section for all packages that should be inst.
@@ -77,7 +66,7 @@
       state: latest                                      # referres to version 
     when: ansible_distribution in ["Debian","Ubuntu"]    # condition looking for distro
 
-  - name: change log file                 
+  - name: changing log file...                 
     tags: nginx,debian
     lineinfile:                                          # working with a line in a file module
       path: /etc/nginx/nginx.conf                        # path to the file that needs change
@@ -86,14 +75,14 @@
     when: ansible_distribution == "Debian"
     register: nginxchg                                   # assigning a variable for the change
 
-  - name: restarting nginx                        
+  - name: restarting nginx...                        
     tags: nginx,debian
     service:                                             # using the Service module
       name: nginx                                        # looking for nginx service
       state: restarted                                   # restart the service
     when: nginxchg.changed                                  # when the nginx variable has changed
 
-  - name: upload default html file
+  - name: uploading default html file...
     tags: nginx,webserver                                # tagging to focus installation
     copy:                                                # copying files to server/workstation
       src: default_site.html
@@ -124,14 +113,14 @@
   become: true
   tasks:
 
-  - name: install MariaDB Server (Debian/Ubuntu)
+  - name: installing MariaDB Server (Debian/Ubuntu)...
     tags: db,mariadb,debian
     apt:
       name: mariadb-server
       state: latest
     when: ansible_distribution in ["Debian", "Ubuntu"]
 
-  - name: install MariaDB Server (Red Hat/Centos)
+  - name: installing MariaDB Server (Red Hat/Centos)...
     tags: db,mariadb,redhat
     dnf:
       name: mariadb
@@ -143,7 +132,7 @@
   become: true
   tasks:
 
-    - name: installing samba package
+    - name: installing samba package...
       tags: samba,fileserver
       package:
         name: samba
