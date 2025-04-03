@@ -1,0 +1,6 @@
+nginx_package_name: nginx
+nginx_service_name: nginx
+php_package_name: php-fpm
+php_mariadb_package_name: php-mysql
+samba_package_name: samba
+

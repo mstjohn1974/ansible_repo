@@ -1,12 +1,20 @@
 - name: install nginx and php packages...              # task name, can be anything
   tags: nginx,debian
-  apt:                                                 # focusing on apt package manager
+  package:                                             # focusing on apt package manager
     name:                                              # name section for all packages that should be inst.
-      - nginx                                          # package name
-      - php-fpm                                        # package name
-      - php-mysql                                      # package name
+      - "{{ nginx_package_name  }}"                    # package name
+      - "{{ php_package_name  }}"                      # package name
+      - "{{ php_mariadb_package_name }}"               # package name
     state: latest                                      # referres to version 
-  when: ansible_distribution in ["Debian","Ubuntu"]    # condition looking for distro
+      #  when: ansible_distribution in ["Debian","Ubuntu"]    # condition looking for distro
+
+- name: starting & enabling nginx Web-Server...
+  tags: nginx,debian
+  service:
+    name: "{{ nginx_service_name }}"
+    state: started
+    enabled: yes
+      #  when: ansible_distribution == "Debian"
 
 - name: changing log file...                 
   tags: nginx,debian
@@ -14,15 +22,8 @@
     path: /etc/nginx/nginx.conf                        # path to the file that needs change
     regexp: '^error_log'                               # Regular expressaion to locate line in file
     line: error_log /var/log/nginx/error-default.log;  # How the line should look like or replace with
-  when: ansible_distribution == "Debian"
-  register: nginxchg                                   # assigning a variable for the change
-
-- name: restarting nginx...                        
-  tags: nginx,debian
-  service:                                             # using the Service module
-    name: nginx                                        # looking for nginx service
-    state: restarted                                   # restart the service
-  when: nginxchg.changed                                  # when the nginx variable has changed
+      #  when: ansible_distribution == "Debian"
+  notify: restart_nginx 
 
 - name: uploading default html file...
   tags: nginx,webserver                                # tagging to focus installation
@@ -32,21 +33,3 @@
     owner: nobody
     group: nogroup
     mode: 0644
-
-- name: starting & enabling nginx Web-Server...
-  tags: nginx,debian
-  service:
-    name: nginx
-    state: started
-    enabled: yes
-  when: ansible_distribution == "Debian"
-
-- name: install nginx pnd php packages...              # task name, can be anything
-  tags: redhat,nginx
-  dnf:                                                 # focusing on dnf package manager
-    name:                                              # name section for all packages that should be inst
-      - nginx                                          # package name
-      - php                                            # package name
-    state: latest                                      # referres to version 
-  when: ansible_distribution == ["RedHat"]             # condition looking for distro
-
